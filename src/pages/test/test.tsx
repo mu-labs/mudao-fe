@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { executeTransaction } from "../../services/fundInstructions";
+import { executeTransaction, TransactionType } from "../../services/fundInstructions";
 
 export default function Test() {
   const [clientTokenAccount, setClientTokenAccount] = useState("");
@@ -14,7 +14,7 @@ export default function Test() {
     setAmount(0);
   };
 
-  const initFundTx = async(txType: string) => {
+  const initFundTransaction = async(txType: TransactionType) => {
     executeTransaction(
       txType,
       clientTokenAccount,
@@ -61,8 +61,8 @@ export default function Test() {
           />
         </div>
         <button onClick={resetUI}>Reset</button>
-        <button onClick={() => initFundTx("subscription")}>Subscribe</button>
-        <button onClick={() => initFundTx("redemption")}>Redeem</button>
+        <button onClick={() => initFundTransaction(TransactionType.SUBSCRIPTION)}>Subscribe</button>
+        <button onClick={() => initFundTransaction(TransactionType.REDEMPTION)}>Redeem</button>
       </div>
     </>
   );

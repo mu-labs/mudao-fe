@@ -1,5 +1,5 @@
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { FUND_PROGRAM_ID } from "../config/programId";
+import { FUND_PROGRAM_ID, FUND_PROGRAM_PDA } from "../config/programId";
 
 import {
   PublicKey,
@@ -7,84 +7,89 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 
-import { connection } from "../services/targetCluster";
-import { sendSignedTx, getWallet } from "../services/thirdPartyWallet";
+import { connection } from "../services/connection";
+import { sendSignedTransaction, getWallet } from "../services/wallet";
 import { FUNDS } from "../config/funds";
-import { TOKENS } from "../config/tokens";
-import { FUND_PROGRAM_PDA } from "../config/programId";
+//import { TOKENS } from "../config/tokens";
 import BN from "bn.js";
 
-const MULTIPLIER = 10000000000;
+const MULTIPLIER = 1000000000;
+
+export enum TransactionType {
+  SUBSCRIPTION,
+  REDEMPTION,
+};
 
 export const executeTransaction = async(
-  txType: string,
+  txType: TransactionType,
   clientTokenAccount: string,
   clientFundTokenAccount: string,
   fundTokenAccount: string,
   amount: number,
 ) => {
   const wallet = await getWallet();
-  const mint = new PublicKey(FUNDS.localnet[0].mint);
-  const fund = new PublicKey(FUNDS.localnet[0].address);
+  const mintPubkey = new PublicKey(FUNDS.localnet[0].mint);
+  const fundPubkey = new PublicKey(FUNDS.localnet[0].address);
+  const clientTokenAccountPubkey = new PublicKey(clientTokenAccount);
+  const clientFundTokenAccountPubkey = new PublicKey(clientFundTokenAccount);
+  const fundTokenAccountPubkey = new PublicKey(fundTokenAccount);
   const byteArrayAmount = new BN(amount * MULTIPLIER).toArray("le", 8);
 
   let fundIx: TransactionInstruction;
 
-  if (txType === "subscription") {
-    fundIx = await createSubscriptionIx(
-      wallet.publicKey,
-      clientTokenAccount,
-      clientFundTokenAccount,
-      byteArrayAmount,
-      FUND_PROGRAM_PDA,
-      mint,
-      fundTokenAccount,
+  switch (txType) {
+    case TransactionType.SUBSCRIPTION:
+      fundIx = await createSubscriptionIx(
+        wallet.publicKey,
+        clientTokenAccountPubkey,
+        clientFundTokenAccountPubkey,
+        FUND_PROGRAM_PDA,
+        mintPubkey,
+        fundTokenAccountPubkey,
+        byteArrayAmount,
     );
-  } else if (txType === "redemption") {
-    fundIx = await createRedemptionIx(
-      wallet.publicKey,
-      clientFundTokenAccount,
-      clientTokenAccount,
-      byteArrayAmount,
-      FUND_PROGRAM_PDA,
-      mint,
-      fund,
-      fundTokenAccount,
-      FUND_PROGRAM_PDA,
+    break;
+    case TransactionType.REDEMPTION:
+      fundIx = await createRedemptionIx(
+        wallet.publicKey,
+        clientFundTokenAccountPubkey,
+        clientTokenAccountPubkey,
+        FUND_PROGRAM_PDA,
+        mintPubkey,
+        fundPubkey,
+        fundTokenAccountPubkey,
+        FUND_PROGRAM_PDA,
+        byteArrayAmount,
     );
-  } else {
-    // Should never happen
-    throw new Error("Invalid Transaction");
+    break;
+    default:
+      // Should never happen
+      throw new Error("Invalid Transaction");
   }
 
   const tx = new Transaction().add(fundIx);
 
-  return sendSignedTx(tx, connection);
-
+  return sendSignedTransaction(tx, connection);
 };
 
 export const createSubscriptionIx = async(
-  clientAccountPubkey: PublicKey,
-  clientTokenAccountPubkey: string,
-  clientReceivingAccountPubkey: string,
+  clientAccount: PublicKey,
+  clientTokenAccount: PublicKey,
+  clientFundTokenAccount: PublicKey,
+  mintAuthority: PublicKey,
+  mint: PublicKey,
+  fundTokenAccount: PublicKey,
   clientTransferAmount: number[],
-  mintAuthorityPubkey: PublicKey,
-  mintPubkey: PublicKey,
-  fundReceivingAccountPubkey: string
-) => {
-  const clientTokenAccount = new PublicKey(clientTokenAccountPubkey);
-  const clientReceivingAccount = new PublicKey(clientReceivingAccountPubkey);
-  const fundReceivingAccount = new PublicKey(fundReceivingAccountPubkey);
-
+): Promise<TransactionInstruction> => {
   const subscriptionIx = new TransactionInstruction({
     programId: FUND_PROGRAM_ID,
     keys: [
-      { pubkey: clientAccountPubkey, isSigner: true, isWritable: false },
+      { pubkey: clientAccount, isSigner: true, isWritable: false },
       { pubkey: clientTokenAccount, isSigner: false, isWritable: true },
-      { pubkey: clientReceivingAccount, isSigner: false, isWritable: true },
-      { pubkey: mintAuthorityPubkey, isSigner: false, isWritable: false },
-      { pubkey: mintPubkey, isSigner: false, isWritable: true },
-      { pubkey: fundReceivingAccount, isSigner: false, isWritable: true },
+      { pubkey: clientFundTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: mintAuthority, isSigner: false, isWritable: false },
+      { pubkey: mint, isSigner: false, isWritable: true },
+      { pubkey: fundTokenAccount, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
     ],
     data: Buffer.from(Uint8Array.of(0, ...clientTransferAmount)),
@@ -95,31 +100,27 @@ export const createSubscriptionIx = async(
 
 export const createRedemptionIx = async(
   clientAccount: PublicKey,
-  clientBurnAccountPubkey: string,
-  clientReceivingAccountPubkey: string,
+  clientFundTokenAccount: PublicKey,
+  clientTokenAccount: PublicKey,
+  mintAuthority: PublicKey,
+  mint: PublicKey,
+  fund: PublicKey,
+  fundTokenAccount: PublicKey,
+  signer: PublicKey,
   clientRedemptionAmount: number[],
-  mintAuthorityPubkey: PublicKey,
-  mintPubkey: PublicKey,
-  fundPubkey: PublicKey,
-  fundRedeemingAccountPubkey: string,
-  signerPubkey: PublicKey,
-) => {
-  const clientFundTokenAccount = new PublicKey(clientBurnAccountPubkey);
-  const clientReceivingAccount = new PublicKey(clientReceivingAccountPubkey);
-  const fundReceivingAccount = new PublicKey(fundRedeemingAccountPubkey);
-
+): Promise<TransactionInstruction> => {
   const redemptionIx = new TransactionInstruction({
     programId: FUND_PROGRAM_ID,
     keys: [
       { pubkey: clientAccount, isSigner: true, isWritable: false },
       { pubkey: clientFundTokenAccount, isSigner: false, isWritable: true },
-      { pubkey: clientReceivingAccount, isSigner: false, isWritable: true },
-      { pubkey: mintAuthorityPubkey, isSigner: false, isWritable: false },
-      { pubkey: mintPubkey, isSigner: false, isWritable: true },
-      { pubkey: fundPubkey, isSigner: false, isWritable: false },
-      { pubkey: fundReceivingAccount, isSigner: false, isWritable: true },
+      { pubkey: clientTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: mintAuthority, isSigner: false, isWritable: false },
+      { pubkey: mint, isSigner: false, isWritable: true },
+      { pubkey: fund, isSigner: false, isWritable: false },
+      { pubkey: fundTokenAccount, isSigner: false, isWritable: true },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-      { pubkey: signerPubkey, isSigner: false, isWritable: false },
+      { pubkey: signer, isSigner: false, isWritable: false },
     ],
     data: Buffer.from(Uint8Array.of(1, ...clientRedemptionAmount)),
   });

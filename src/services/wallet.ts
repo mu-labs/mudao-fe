@@ -4,12 +4,12 @@ import {
 } from "@solana/web3.js";
 
 import Wallet from "@project-serum/sol-wallet-adapter";
-import { DEFAULT_CLUSTER, COMMITMENT } from "./targetCluster";
+import { targetCluster, COMMITMENT } from "./connection";
 
 const PROVIDER_URL = "https://www.sollet.io";
-export const wallet = new Wallet(PROVIDER_URL, DEFAULT_CLUSTER);
+export const wallet = new Wallet(PROVIDER_URL, targetCluster);
 
-export const sendSignedTx = async(
+export const sendSignedTransaction = async(
   tx: Transaction,
   connection: Connection,
 ) => {
