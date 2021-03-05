@@ -4,9 +4,10 @@ import {
 } from "@solana/web3.js";
 
 import Wallet from "@project-serum/sol-wallet-adapter";
+import { DEFAULT_CLUSTER, COMMITMENT } from "./targetCluster";
 
 const PROVIDER_URL = "https://www.sollet.io";
-export const wallet = new Wallet(PROVIDER_URL, "http://localhost:8899");
+export const wallet = new Wallet(PROVIDER_URL, DEFAULT_CLUSTER);
 
 export const sendSignedTx = async(
   tx: Transaction,
@@ -18,10 +19,10 @@ export const sendSignedTx = async(
   const signed = await wallet.signTransaction(tx);
   const txid = await connection.sendRawTransaction(signed.serialize(), {
     skipPreflight: false,
-    preflightCommitment: "singleGossip",
+    preflightCommitment: COMMITMENT,
   });
 
-  return connection.confirmTransaction(txid, "singleGossip");
+  return connection.confirmTransaction(txid, COMMITMENT);
 };
 
 const connectWallet = () => {

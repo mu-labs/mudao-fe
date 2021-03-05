@@ -5,6 +5,8 @@ import {
   Connection,
 } from "@solana/web3.js";
 
+export const DEFAULT_CLUSTER = "http://localhost:8899";
+
 type Localnet = "localnet";
 
 export const COMMITMENT: Commitment = "singleGossip";
@@ -18,12 +20,12 @@ export const CLUSTERS = {
 
 export let targetCluster: Cluster | Localnet = CLUSTERS.LOCALNET;
 
-let connection: Connection;
+export let connection: Connection = new Connection(DEFAULT_CLUSTER, COMMITMENT);
 
 export const switchCluster = (cluster: Cluster | Localnet) => {
   connection = new Connection(
     cluster === CLUSTERS.LOCALNET
-      ? "http://localhost:8899"
+      ? DEFAULT_CLUSTER
       : clusterApiUrl(cluster),
       COMMITMENT
   );
