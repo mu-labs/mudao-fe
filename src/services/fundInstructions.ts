@@ -13,7 +13,7 @@ import { FUNDS } from "../config/funds";
 //import { TOKENS } from "../config/tokens";
 import BN from "bn.js";
 
-const MULTIPLIER = 1000000000;
+export const MULTIPLIER = 1000000000;
 
 export enum TransactionType {
   SUBSCRIPTION,

@@ -6,7 +6,7 @@ import logo from "../../assets/logowhite.svg";
 import logoS from "../../assets/logoS.svg";
 export default function Exchange() {
     return (
-        <div >
+        <div>
             <Header color="text-white bg-blue-200" logo={logo} lineClass="bg-white" buttonClass="border-2 border-white" />
             <div className="bg-blue-200">
                 <div className=" text-white bg-center bg-100  pt-4 flex justify-start">
