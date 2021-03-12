@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { 
-  executeTransaction, 
-  TransactionType, 
-  MULTIPLIER 
+import {
+  executeTransaction,
+  TransactionType,
+  MULTIPLIER,
 } from "../../services/fundInstructions";
-import { 
-  getTokenAccountInfo, 
-  getTokenMintAddress, 
-  getTokenAddress, 
-  AccountOwner, 
-  TokenAccount 
+
+import {
+  getTokenAccountInfo,
+  getTokenMintAddress,
+  getTokenAddress,
+  AccountOwner,
+  TokenAccount,
 } from "../../services/wallet";
+
 import { FUNDS } from "../../config/funds";
 
 export default function Test() {
@@ -113,7 +115,7 @@ export default function Test() {
                 <p className="font-poppins mb-2">
                   To (estimate)
                 </p>
-                <input placeholder="0.00" className="bg-transparent text-white-500 text-xl" />
+                <input placeholder="0.00" value={ amount || 0 } className="bg-transparent text-white-500 text-xl" />
               </div>
               <div>
                 <div className="flex font-poppins">

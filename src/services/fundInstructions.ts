@@ -1,12 +1,11 @@
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { FUND_PROGRAM_ID, FUND_PROGRAM_PDA } from "../config/programId";
-
 import {
   PublicKey,
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
 
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { FUND_PROGRAM_ID, FUND_PROGRAM_PDA } from "../config/programId";
 import { connection } from "../services/connection";
 import { sendSignedTransaction, getWallet } from "../services/wallet";
 import { FUNDS } from "../config/funds";
@@ -69,7 +68,9 @@ export const executeTransaction = async(
 
   const tx = new Transaction().add(fundIx);
 
-  return sendSignedTransaction(tx, connection);
+  const sendTx = sendSignedTransaction(tx, connection);
+  console.log(sendTx);
+  return sendTx;
 };
 
 export const createSubscriptionIx = async(

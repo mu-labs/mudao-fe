@@ -1,5 +1,5 @@
 import Wallet from "@project-serum/sol-wallet-adapter";
-import {  PublicKey, Connection, Transaction } from "@solana/web3.js";
+import { PublicKey, Connection, Transaction } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import { connection, targetCluster, COMMITMENT } from "./connection";
 import { parseTokenAccountData } from "./data";
@@ -9,7 +9,12 @@ import { TOKENS } from "../config/tokens";
 const PROVIDER_URL = "https://www.sollet.io";
 export const wallet = new Wallet(PROVIDER_URL, targetCluster);
 
-export type TokenAccount = { pubkey: string, mint: string, owner: string, amount: number };
+export type TokenAccount = {
+  pubkey: string,
+  mint: string,
+  owner: string,
+  amount: number,
+};
 
 export enum AccountOwner {
   FUND,
