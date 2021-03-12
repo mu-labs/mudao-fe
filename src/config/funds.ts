@@ -1,9 +1,9 @@
 export const FUNDS = {
   localnet: [
     {
-      address: "HerhjvM6gqypQgBgwa1KcfTzfGYgXL3Kz3vNYermZphP",
-      name: "TEST FUND",
-      mint: "2q12CkzEsHk2ZysDBqF9xBH66k9zxauy94Z8FVFUKCqj",
+      address: "2NxBvyuxwE5PXrNKzRRvyWPPvzHzqhj2bq54pzqB8g6P",
+      name: "FUND0",
+      mint: "ErjrGQ6HLjXgmJYRoNk3xoygX5uezcJeDPBN5jUU6RJq",
     },
   ],
 };

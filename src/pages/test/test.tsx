@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { executeTransaction, TransactionType, MULTIPLIER } from "../../services/fundInstructions";
-import { PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { connection, COMMITMENT } from "../../services/connection";
-import { getWallet } from "../../services/wallet";
-import { parseTokenAccountData } from "../../services/data";
-import { TOKENS } from "../../config/tokens";
+import { 
+  executeTransaction, 
+  TransactionType, 
+  MULTIPLIER 
+} from "../../services/fundInstructions";
+import { 
+  getTokenAccountInfo, 
+  getTokenMintAddress, 
+  getTokenAddress, 
+  AccountOwner, 
+  TokenAccount 
+} from "../../services/wallet";
 import { FUNDS } from "../../config/funds";
-
-type TokenAccount = { pubkey: string, mint: string, owner: string, amount: number };
-enum AccountOwner {
-  FUND,
-  CLIENT,
-};
 
 export default function Test() {
   const [fundMint, setFundMint] = useState("");
@@ -24,8 +23,13 @@ export default function Test() {
   const [fundReceivingAccount, setFundReceivingAccount] = useState("");
   const [amount, setAmount] = useState(0);
 
+  useEffect(() => {
+    getTokenAccountInfo(AccountOwner.FUND)
+      .then(res => setFundTokenAccounts(res));
+    setFundMint(FUNDS.localnet[0].mint);
+  }, []);
 
-  const initFundTransaction = async(txType: TransactionType) => {
+  const initFundTransaction = (txType: TransactionType) => {
     executeTransaction(
       txType,
       clientTokenAccount,
@@ -35,63 +39,15 @@ export default function Test() {
     );
   };
 
-  const getInfo = async(acOwner: AccountOwner) => {
-    let wallet: PublicKey;
-
-    switch (acOwner) {
-      case AccountOwner.CLIENT:
-        const result = await getWallet();
-        wallet = result.publickey;
-        break;
-      case AccountOwner.FUND:
-        wallet = new PublicKey(FUNDS.localnet[0].address);
-        break;
-      default:
-      // Should never happen
-      throw new Error("Invalid account owner.");
-    }
-
-    const accountInfo = await connection.getTokenAccountsByOwner(
-      wallet,
-      { programId: TOKEN_PROGRAM_ID },
-      COMMITMENT
-    );
-    const tokenAccounts = accountInfo.value
-      .map(e => [e.pubkey, e.account.data])
-      .map(e => parseTokenAccountData(e));
-
-    return acOwner === AccountOwner.CLIENT
-      ? setClientTokenAccounts(tokenAccounts)
-      : setFundTokenAccounts(tokenAccounts);
-  };
-
-  useEffect(() => { getInfo(AccountOwner.FUND) }, []);
-
-  //These two functions share a lot of patterns, could be abstracted out to reduce repetition
-  const getTokenMintAddress = (tokenName: string) => {
-    for (const token of TOKENS.localnet) {
-      if (token.tokenName === tokenName) {
-        return token.mintAddress;
-      }
-    }
-    throw new Error("No tokens with name: " + tokenName);
-  };
-
-  const getTokenAddress = (tokenAccounts: Array<TokenAccount>, tokenMint: string) => {
-    for (const account of tokenAccounts) {
-      if (account.mint === tokenMint) {
-        return account;
-      }
-    }
-    throw new Error("No token account associated with this token");
-  };
-
-  const test = (tokenName: string) => {
+  const selectToken = (tokenName: string) => {
     const tokenMintAddress = getTokenMintAddress(tokenName);
     const clientTokenAddress = getTokenAddress(clientTokenAccounts, tokenMintAddress);
+
+    if (!clientTokenAccounts || !fundTokenAccounts) {
+      throw new Error("Missing token account data.");
+    }
+    setClientTokenBalance(clientTokenAddress.amount / MULTIPLIER); //Doesn't update after tx -> clientAccounts are cached
     setClientTokenAccount(clientTokenAddress.pubkey);
-    // This is not a good approach, client accounts are cached and not updated between tx.
-    setClientTokenBalance(clientTokenAddress.amount / MULTIPLIER);
     setClientReceivingAccount(
       getTokenAddress(clientTokenAccounts, fundMint).pubkey
     );
@@ -99,8 +55,6 @@ export default function Test() {
       getTokenAddress(fundTokenAccounts, tokenMintAddress).pubkey
     );
   };
-
-  useEffect(() => setFundMint(FUNDS.localnet[0].mint), []);
 
   return (
     <>
@@ -141,7 +95,7 @@ export default function Test() {
                     className="text-white bg-transparent"
                     name="tokens"
                     id="tokens"
-                    onChange={e => test(e.target.value)}
+                    onChange={e => selectToken(e.target.value)}
                   >
                     <option value="TEST0">T0</option>
                     <option value="TEST1">T1</option>
@@ -178,7 +132,12 @@ export default function Test() {
               </div>
 
             </div>
-            <button className="bg-blue-300 w-full py-2 text-white rounded mt-4 mb-4" onClick={() => getInfo()}>
+            <button className="bg-blue-300 w-full py-2 text-white rounded mt-4 mb-4"
+              onClick={() =>
+                getTokenAccountInfo(AccountOwner.CLIENT)
+                  .then(res => setClientTokenAccounts(res))
+              }
+            >
               Connect Wallet
             </button>
           </div>

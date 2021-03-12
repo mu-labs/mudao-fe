@@ -2,28 +2,28 @@ export const TOKENS = {
   localnet: [
     {
       tokenName: "TEST0",
-      mintAddress: "C8dfyy9VQTgfejFYtmBEy8TL77XrwAFYb3nV9GxfQbJ6",
+      mintAddress: "EjSAgBadaZXUCzA2cY3nPZsMsLZ5LAewLH3b2f8EEC7Y",
       tokenSymbol: "T0",
       icon: "",
     },
     {
       tokenName: "TEST1",
-      mintAddress: "B2tEbCUNYiTgUAjQ3GQNjQGRvrX59dQH6HdGeuLUS6oJ",
+      mintAddress: "BUNbkXMmRwcLFM4W71ByMFtikmva7kpugGF4GVCwj1P2",
       tokenSymbol: "T1",
     },
     {
       tokenName: "TEST2",
-      mintAddress: "9fmAP46w8yqrM3q4vBUwAZxrJNuEGbZ8oNsBjanwXWPf",
+      mintAddress: "ESe1konhnZXtPpeXNX39KRRaL5peR4uAzwcZF4WGBwQD",
       tokenSymbol: "T2",
     },
     {
       tokenName: "TEST3",
-      mintAddress: "H72XdNnVTd3iiiZc7uAc9XC88kFLGXAXKJqD5iaFZR9k",
+      mintAddress: "RaPY6TaGetAomNdX9gLfR2tak7nZArgF749Sx9ShVjp",
       tokenSymbol: "T3",
     },
     {
       tokenName: "FUND0",
-      mintAddress: "2q12CkzEsHk2ZysDBqF9xBH66k9zxauy94Z8FVFUKCqj",
+      mintAddress: "ErjrGQ6HLjXgmJYRoNk3xoygX5uezcJeDPBN5jUU6RJq",
       tokenSymbol: "F0",
       icon: "",
     },
